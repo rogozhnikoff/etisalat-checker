@@ -18,21 +18,32 @@ function minToMl(min) {
     return min * (60 * 1000)
 }
 
+function isOffPeak() {
+    return (new Date()).getHours() < 8
+}
+function getSelectorByTime() {
+    return isOffPeak() ? 'remainingValOffPeak' : 'remainingValPeak'
+}
+
 function getInternet(){
     var dfd = $.Deferred();
+
     $.ajax({
         url: 'https://mypage.etisalat.lk/bbportal/home'
     }).done(function(html){
-        var found = html.match(/\<label id=\"remainingValPeak\"\>\s+([0-9]+)/)[1];
-
         dfd.resolve({
-           quota: parseInt(found)
+           quota: parseInt(
+               html.match(
+                   new RegExp('<label id="' + getSelectorByTime() + '">\\s+([0-9]+)\\s+[A-z]+\\s+</label>', 'im')
+               )[1]
+           )
         });
     }).fail(function(status){
         dfd.reject({
             status: status
         });
     });
+
     return dfd.promise();
 }
 
@@ -43,7 +54,7 @@ function notify(data){
         message: 'fuckMessage',
         priority: 1,
         eventTime: Date.now() + 1000,
-        iconUrl: "icons/etisalat-logo.jpg"
+        iconUrl: "icons/etisalat-logo.png"
     }, function(id){});
 
     setTimeout(function(){
@@ -51,16 +62,38 @@ function notify(data){
     }, options.notificationTime);
 }
 
+function isString(some) {
+    return typeof some === 'string'
+}
+
+function transformToString(some) {
+    return some + '';
+}
+
+function sliceMoreFour(str) {
+    if (!isString(str)) str = transformToString(str);
+
+    if (str.length <= 4) return str;
+
+    return str.slice(0, 4)
+}
+
 function refresh(){
     getInternet().done(function(data){
         var firstCall = typeof lastInternet === 'undefined',
             step = (data.quota > 100) ? options.step : 25;
 
+
         if (firstCall || ((lastInternet - data.quota) >= step)) {
             notify({quota: data.quota});
             lastInternet = data.quota;
         }
+        chrome.browserAction.setBadgeText({
+            text: sliceMoreFour(data.quota)
+        });
+
         setTimeout(refresh, options.timeoutSuccess);
+
     }).fail(function(){
         setTimeout(refresh, options.timeoutFail);
     });
