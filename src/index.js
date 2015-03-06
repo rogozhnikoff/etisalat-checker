@@ -3,6 +3,7 @@
 * */
 
 var lastInternet,
+    timer,
     options = {
         id: 'etisalat-internet',
         step: 100,
@@ -13,6 +14,11 @@ var lastInternet,
 
 // first call
 refresh();
+
+chrome.browserAction.onClicked.addListener(function() {
+    clearTimeout(timer);
+    refresh();
+});
 
 function minToMl(min) {
     return min * (60 * 1000)
@@ -92,9 +98,9 @@ function refresh(){
             text: sliceMoreFour(data.quota)
         });
 
-        setTimeout(refresh, options.timeoutSuccess);
+        timer = setTimeout(refresh, options.timeoutSuccess);
 
     }).fail(function(){
-        setTimeout(refresh, options.timeoutFail);
+        timer = setTimeout(refresh, options.timeoutFail);
     });
 }
