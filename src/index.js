@@ -22,6 +22,7 @@ var lastInternet,
 // first call
 refresh();
 
+
 chrome.browserAction.onClicked.addListener(function () {
     clearTimeout(timer);
     refresh();
@@ -36,7 +37,10 @@ function getInternet() {
         dfd.resolve({
             quota: parseInt(
                 html.match(
-                    new RegExp('<label id="' + getSelectorByTime() + '">\\s+([0-9]+)\\s+[A-z]+\\s+</label>', 'im')
+                    new RegExp(
+                        '<label id="' + getSelectorByTime() + '">\\s+([0-9]+)\\s+[A-z]+\\s+</label>',
+                        'im'
+                    )
                 )[1]
             )
         });
@@ -66,6 +70,7 @@ function notify(data) {
 
 
 function refresh() {
+    setBadge('...');
     getInternet().done(function (data) {
         var firstCall = typeof lastInternet === 'undefined',
             step = (data.quota > 100) ? options.step : 25;
@@ -75,9 +80,8 @@ function refresh() {
             notify({quota: data.quota});
             lastInternet = data.quota;
         }
-        chrome.browserAction.setBadgeText({
-            text: sliceMoreFour(data.quota)
-        });
+
+        setBadge(data.quota);
 
         timer = setTimeout(refresh, options.timeoutSuccess);
 
@@ -86,6 +90,11 @@ function refresh() {
     });
 }
 
+function setBadge(text) {
+    return chrome.browserAction.setBadgeText({
+        text: sliceMoreFour(text)
+    });
+}
 
 /*
  * Clean helpers function
@@ -98,12 +107,12 @@ function noop() {
 function extend(x, y) {
     var ret = {};
     for (var xname in x) {
-        if(x.hasOwnProperty(xname)) {
+        if (x.hasOwnProperty(xname)) {
             ret[xname] = typeof y[xname] !== 'undefined' ? y[xname] : x[xname];
         }
     }
     for (var yname in y) {
-        if(y.hasOwnProperty(yname)) {
+        if (y.hasOwnProperty(yname)) {
             ret[yname] = y[yname]
         }
     }
