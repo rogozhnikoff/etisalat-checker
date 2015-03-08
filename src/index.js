@@ -16,8 +16,12 @@ var lastInternet,
             message: 'checker-message',
             priority: 1,
             iconUrl: "icons/etisalat-logo.png"
+        },
+        selectors: {
+            offpeak: 'remainingValOffPeak',
+            peak: 'remainingValPeak'
         }
-    }
+    };
 
 // first call
 refresh();
@@ -38,7 +42,9 @@ function getInternet() {
             quota: parseInt(
                 html.match(
                     new RegExp(
-                        '<label id="' + getSelectorByTime() + '">\\s+([0-9]+)\\s+[A-z]+\\s+</label>',
+                        '<label id="'
+                            + isOffPeak() ? options.selectors.offpeak : options.selectors.peak
+                            + '">\\s+([0-9]+)\\s+[A-z]+\\s+</label>',
                         'im'
                     )
                 )[1]
@@ -86,6 +92,7 @@ function refresh() {
         timer = setTimeout(refresh, options.timeoutSuccess);
 
     }).fail(function () {
+        setBadge('=(');
         timer = setTimeout(refresh, options.timeoutFail);
     });
 }
@@ -124,9 +131,6 @@ function minToMl(min) {
 
 function isOffPeak() {
     return (new Date()).getHours() < 8
-}
-function getSelectorByTime() {
-    return isOffPeak() ? 'remainingValOffPeak' : 'remainingValPeak'
 }
 function isString(some) {
     return typeof some === 'string'
