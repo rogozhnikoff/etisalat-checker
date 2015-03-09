@@ -32,16 +32,23 @@ chrome.browserAction.onClicked.addListener(function () {
     refresh();
 });
 
+
+function regexpForSelect() {
+    return new RegExp(
+        '<label id="'
+        + (isOffPeak() ? options.selectors.offpeak : options.selectors.peak)
+        + '">\\s+([0-9]+)\\s+[A-z]+\\s+</label>',
+        'im'
+    )
+}
+
 function extractQuota(html) {
     return parseInt(
-        html.match(
-            new RegExp(
-                '<label id="'
-                    + (isOffPeak() ? options.selectors.offpeak : options.selectors.peak)
-                    + '">\\s+([0-9]+)\\s+[A-z]+\\s+</label>',
-                'im'
+        second(
+            html.match(
+                regexpForSelect()
             )
-        )[1]
+        )
     )
 }
 
@@ -112,6 +119,14 @@ function setBadge(text) {
 /*
  * Clean helpers function
  * */
+
+function first(arr){
+    return arr[0]
+}
+function second(arr){
+    return arr[1]
+}
+
 
 function noop() {
 
