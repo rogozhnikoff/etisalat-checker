@@ -32,6 +32,19 @@ chrome.browserAction.onClicked.addListener(function () {
     refresh();
 });
 
+function extractQuota(html) {
+    return parseInt(
+        html.match(
+            new RegExp(
+                '<label id="'
+                    + (isOffPeak() ? options.selectors.offpeak : options.selectors.peak)
+                    + '">\\s+([0-9]+)\\s+[A-z]+\\s+</label>',
+                'im'
+            )
+        )[1]
+    )
+}
+
 function getInternet() {
     var dfd = $.Deferred();
 
@@ -39,16 +52,7 @@ function getInternet() {
         url: options.url
     }).done(function (html) {
         dfd.resolve({
-            quota: parseInt(
-                html.match(
-                    new RegExp(
-                        '<label id="'
-                            + isOffPeak() ? options.selectors.offpeak : options.selectors.peak
-                            + '">\\s+([0-9]+)\\s+[A-z]+\\s+</label>',
-                        'im'
-                    )
-                )[1]
-            )
+            quota: extractQuota(html)
         });
     }).fail(function (status) {
         dfd.reject({
@@ -58,6 +62,8 @@ function getInternet() {
 
     return dfd.promise();
 }
+
+
 
 function notify(data) {
     chrome.notifications.create(
